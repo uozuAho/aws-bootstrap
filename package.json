@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "pm2 start ./server.js --name hello_aws --log ../logs/app.log",
-    "stop": "pm2 stop hello_aws"
+    "stop": "pm2 stop hello_aws",
+    "build": "echo dummy npm build"
   },
   "keywords": [],
   "author": "",
