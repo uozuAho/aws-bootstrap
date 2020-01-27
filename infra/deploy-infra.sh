@@ -40,5 +40,5 @@ delete_stack() {
 # run stuff!
 
 # create_stack
-check_stack
-# delete_stack
+# check_stack
+delete_stack
