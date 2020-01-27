@@ -83,6 +83,7 @@ Resources:
     Properties:
       Name: !Ref AWS::StackName
       ServiceRole: !GetAtt DeploymentRole.Arn
+      BuildSpec: infra/buildspec.yml
       Artifacts:
         Type: CODEPIPELINE
       Environment:
