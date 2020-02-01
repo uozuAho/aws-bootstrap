@@ -194,7 +194,7 @@ Resources:
               source: !Sub "https://aws-codedeploy-${AWS::Region}.s3.amazonaws.com/latest/install"
               mode: "000755" # executable
               commands:
-                00-install-cd-agent:
+                - 00-install-cd-agent:
                   command: "./install auto"
                   cwd: "/home/ec2-user/"
     Properties:
@@ -244,9 +244,8 @@ Resources:
           # Have CloudFormation install any files and packages from the metadata
           /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --region ${AWS::Region} --resource Instance
 
-          # check and (re)start the codedeploy agent. cfn-init is supposed to do this,
+          # (re)start the codedeploy agent. cfn-init is supposed to do this,
           # but when I check the instance, the agent is not running
-          service codedeploy-agent status
           service codedeploy-agent start
 
           # Signal to CloudFormation that the instance is ready
