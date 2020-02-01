@@ -244,6 +244,11 @@ Resources:
           # Have CloudFormation install any files and packages from the metadata
           /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --region ${AWS::Region} --resource Instance
 
+          # check and (re)start the codedeploy agent. cfn-init is supposed to do this,
+          # but when I check the instance, the agent is not running
+          service codedeploy-agent status
+          service codedeploy-agent start
+
           # Signal to CloudFormation that the instance is ready
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --region ${AWS::Region} --resource Instance
       Tags:
