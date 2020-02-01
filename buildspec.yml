@@ -8,13 +8,12 @@ phases:
     commands:
       # run 'npm install' using versions in package-lock.json
       - npm ci
-      # check if binaries are symlinks
-      - ls -l node_modules/.bin
   build:
     commands:
       - npm run build
 artifacts:
   files:
+    - after_install.sh
     - start-service.sh
     - stop-service.sh
     - server.js
