@@ -193,17 +193,10 @@ Resources:
             /home/ec2-user/install:
               source: !Sub "https://aws-codedeploy-${AWS::Region}.s3.amazonaws.com/latest/install"
               mode: "000755" # executable
-              commands:
-                00-does-this-work:
-                  command: echo 'yoyoyoyoyoyo'
-                  cwd: "/home/ec2-user/"
-                01-install-cd-agent:
-                  command: "./install auto"
-                  cwd: "/home/ec2-user/"
-                # doesn't seem to always work the first time?????
-                02-install-cd-agent-again:
-                  command: "./install auto"
-                  cwd: "/home/ec2-user/"
+          commands:
+            00-install-cd-agent:
+              command: "./install auto"
+              cwd: "/home/ec2-user/"
     Properties:
       ImageId: !Ref EC2AMI
       InstanceType: !Ref EC2InstanceType
