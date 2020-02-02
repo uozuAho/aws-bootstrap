@@ -14,7 +14,7 @@ hooks:
   AfterInstall:
     - location: after_install.sh
       timeout: 300
-      runas: root
+      runas: ec2-user
   ApplicationStart:
     # start the application
     - location: start-service.sh
