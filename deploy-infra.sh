@@ -10,18 +10,18 @@ GITHUB_REPO=$(cat ~/.github/aws-bootstrap-repo)
 GITHUB_BRANCH=master
 REGION=ap-southeast-2
 STACK_NAME=awsbootstrap
+SETUP_STACK_NAME=$STACK_NAME-setup
 
 AWS_ACCOUNT_ID=`aws sts get-caller-identity --profile awsbootstrap --query "Account" --output text`
 CODEPIPELINE_BUCKET="$STACK_NAME-$REGION-codepipeline-$AWS_ACCOUNT_ID"
 
-# This only needs to be run once
-init_s3() {
+create_setup_stack() {
     echo -e "\n\n=========== Deploying setup.yml ==========="
 
     aws cloudformation deploy \
         --region $REGION \
         --profile $CLI_PROFILE \
-        --stack-name $STACK_NAME-setup \
+        --stack-name $SETUP_STACK_NAME \
         --template-file setup.yml \
         --no-fail-on-empty-changeset \
         --capabilities CAPABILITY_NAMED_IAM \
@@ -55,20 +55,26 @@ create_stack() {
     fi
 }
 
-check_stack() {
+check_stacks() {
+    aws cloudformation describe-stacks --stack-name $SETUP_STACK_NAME
     aws cloudformation describe-stacks --stack-name $STACK_NAME
 }
 
 delete_stack() {
     echo "deleting stack '$STACK_NAME'"
-
     aws cloudformation delete-stack --stack-name $STACK_NAME
+}
+
+delete_setup_stack() {
+    echo "deleting stack '$SETUP_STACK_NAME'"
+    aws cloudformation delete-stack --stack-name $SETUP_STACK_NAME
 }
 
 # ----------------------------------------------------------------------
 # run stuff!
 
-init_s3
+create_setup_stack
 create_stack
-# check_stack
+# check_stacks
 # delete_stack
+# delete_setup_stack
