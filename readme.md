@@ -30,3 +30,7 @@ Working through https://gumroad.com/l/aws-good-parts
   coming up on the EC2 instance. I mistakenly put the CD agent install command
   in the wrong spot in main.yml, which caused the agent to not be installed.
   See commit `655ad35`.
+
+- Getting appspec wrong can mean you need to tear the entire stack down and
+  rebuild. This takes ages, is there no faster way to do this? ECS/EKS is
+  looking very attractive right now.

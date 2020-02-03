@@ -4,6 +4,6 @@
 # So, here we make pm2 binary a symlink.
 
 source /home/ec2-user/.bash_profile
-cd /home/ec2-user/app/release
-rm node_modules/.bin/pm2
-ln -s node_modules/pm2/bin/pm2 node_modules/.bin/pm2
+cd /home/ec2-user/app/release/node_modules/.bin
+rm pm2
+ln -s ../pm2/bin/pm2 pm2
