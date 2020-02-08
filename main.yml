@@ -124,9 +124,6 @@ Resources:
       VpcId: !Ref VPC
       HealthCheckEnabled: true
       HealthCheckProtocol: HTTP
-      Targets:
-        - Id: !Ref Instance1
-        - Id: !Ref Instance2
       Tags:
         - Key: Name
           Value: !Ref AWS::StackName
@@ -223,10 +220,6 @@ Resources:
       ApplicationName: !Ref DeploymentApplication
       DeploymentConfigName: CodeDeployDefault.AllAtOnce
       ServiceRoleArn: !GetAtt DeploymentRole.Arn
-      Ec2TagFilters:
-        - Key: aws:cloudformation:stack-name
-          Type: KEY_AND_VALUE
-          Value: !Ref AWS::StackName
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
@@ -296,34 +289,6 @@ Resources:
       Name: !Sub 'webhook-${AWS::StackName}'
       TargetPipelineVersion: !GetAtt Pipeline.Version
       RegisterWithThirdParty: true
-  Instance1:
-    Type: AWS::EC2::Instance
-    CreationPolicy:
-      ResourceSignal:
-        Timeout: PT15M
-        Count: 1
-    Properties:
-      SubnetId: !Ref SubnetAZ1
-      LaunchTemplate:
-        LaunchTemplateId: !Ref InstanceLaunchTemplate
-        Version: !GetAtt InstanceLaunchTemplate.LatestVersionNumber
-      Tags:
-        - Key: Name
-          Value: !Ref AWS::StackName
-  Instance2:
-    Type: AWS::EC2::Instance
-    CreationPolicy:
-      ResourceSignal:
-        Timeout: PT15M
-        Count: 1
-    Properties:
-      SubnetId: !Ref SubnetAZ2
-      LaunchTemplate:
-        LaunchTemplateId: !Ref InstanceLaunchTemplate
-        Version: !GetAtt InstanceLaunchTemplate.LatestVersionNumber
-      Tags:
-        - Key: Name
-          Value: !Ref AWS::StackName
   InstanceLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Metadata:
