@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "pm2 start ./server.js --name hello_aws --log ../logs/app.log",
+    "start": "pm2 start ./server.js --name hello_aws --log ../logs/app.log --update-env -- -- STACK_NAME ${STACK_NAME}",
     "stop": "pm2 stop hello_aws",
     "build": "echo dummy npm build"
   },

@@ -1,7 +1,9 @@
 const { hostname } = require( 'os' );
 const http = require( 'http' );
 
-const message = `Hello stuff from ${hostname()}\n`;
+const STACK_NAME = process.env.STACK_NAME || "Unknown Stack" ;
+
+const message = `Hello stuff from ${hostname()} in ${STACK_NAME}\n`;
 
 const port = 8080;
 const server = http.createServer((req, res) => {
@@ -11,5 +13,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(port, hostname, () => {
-    console.log( `Server running at http:// ${ hostname() } : ${ port } /` );
+    console.log( `Server running at http://${hostname()}:${port}/`);
 });
