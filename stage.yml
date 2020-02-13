@@ -6,23 +6,6 @@ Parameters:
   EC2AMI:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
     Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
-  CodePipelineBucket:
-    Type: String
-    Description: 'The S3 bucket for CodePipeline artifacts.'
-  GitHubOwner:
-    Type: String
-    Description: 'The username of the source GitHub repo.'
-  GitHubRepo:
-    Type: String
-    Description: 'The source GitHub repo name (without the username).'
-  GitHubBranch:
-    Type: String
-    Default: master
-    Description: 'The source GitHub branch.'
-  GitHubPersonalAccessToken:
-    Type: String
-    NoEcho: true
-    Description: 'A GitHub personal access token with "repo" and "admin:repo_hook" permissions.'
 
 Resources:
   VPC:
@@ -173,122 +156,11 @@ Resources:
       Tags:
         - Key: Name
           Value: !Ref AWS::StackName
-  DeploymentRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          Effect: Allow
-          Principal:
-            Service:
-              - codepipeline.amazonaws.com
-              - codedeploy.amazonaws.com
-              - codebuild.amazonaws.com
-          Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/PowerUserAccess
   InstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
     Properties:
       Roles:
         - Ref: InstanceRole
-  BuildProject:
-    Type: AWS::CodeBuild::Project
-    Properties:
-      Name: !Ref AWS::StackName
-      ServiceRole: !GetAtt DeploymentRole.Arn
-      Artifacts:
-        Type: CODEPIPELINE
-      Environment:
-        Type: LINUX_CONTAINER
-        ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/standard:2.0
-      Source:
-        Type: CODEPIPELINE
-  DeploymentApplication:
-    Type: AWS::CodeDeploy::Application
-    Properties:
-      ApplicationName: !Ref AWS::StackName
-      ComputePlatform: Server
-  StagingDeploymentGroup:
-    Type: AWS::CodeDeploy::DeploymentGroup
-    Properties:
-      DeploymentGroupName: staging
-      AutoScalingGroups:
-        - !Ref ScalingGroup
-      ApplicationName: !Ref DeploymentApplication
-      DeploymentConfigName: CodeDeployDefault.AllAtOnce
-      ServiceRoleArn: !GetAtt DeploymentRole.Arn
-  Pipeline:
-    Type: AWS::CodePipeline::Pipeline
-    Properties:
-      Name: !Ref AWS::StackName
-      ArtifactStore:
-        Location: !Ref CodePipelineBucket
-        Type: S3
-      RoleArn: !GetAtt DeploymentRole.Arn
-      Stages:
-        - Name: Source
-          Actions:
-            - Name: Source
-              ActionTypeId:
-                Category: Source
-                Owner: ThirdParty
-                Version: 1
-                Provider: GitHub
-              OutputArtifacts:
-                - Name: Source
-              Configuration:
-                Owner: !Ref GitHubOwner
-                Repo: !Ref GitHubRepo
-                Branch: !Ref GitHubBranch
-                OAuthToken: !Ref GitHubPersonalAccessToken
-                PollForSourceChanges: false
-              RunOrder: 1
-        - Name: Build
-          Actions:
-            - Name: Build
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Version: 1
-                Provider: CodeBuild
-              InputArtifacts:
-                - Name: Source
-              OutputArtifacts:
-                - Name: Build
-              Configuration:
-                ProjectName: !Ref BuildProject
-              RunOrder: 1
-        - Name: Staging
-          Actions:
-            - Name: Staging
-              InputArtifacts:
-                - Name: Build
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Version: 1
-                Provider: CodeDeploy
-              Configuration:
-                ApplicationName: !Ref DeploymentApplication
-                DeploymentGroupName: !Ref StagingDeploymentGroup
-              RunOrder: 1
-  PipelineWebhook:
-    Type: AWS::CodePipeline::Webhook
-    Properties:
-      Authentication: GITHUB_HMAC
-      AuthenticationConfiguration:
-        SecretToken: !Ref GitHubPersonalAccessToken
-      Filters:
-        - JsonPath: $.ref
-          MatchEquals: 'refs/heads/{Branch}'
-      TargetPipeline: !Ref Pipeline
-      TargetAction: Source
-      Name: !Sub 'webhook-${AWS::StackName}'
-      TargetPipelineVersion: !GetAtt Pipeline.Version
-      RegisterWithThirdParty: true
   InstanceLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Metadata:
@@ -410,5 +282,6 @@ Outputs:
   LBEndpoint:
     Description: The DNS name for the LB
     Value: !Sub "http://${LoadBalancer.DNSName}"
-    Export:
-      Name: LBEndpoint
+  ScalingGroup:
+    Description: The ScalingGroup for this stage
+    Value: !Ref ScalingGroup
