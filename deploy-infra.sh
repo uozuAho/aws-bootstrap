@@ -50,31 +50,31 @@ create_stack() {
     # If the deploy succeeded, show the DNS name of the created instance
     if [ $? -eq 0 ]; then
         aws cloudformation list-exports \
-            --profile awsbootstrap \
+            --profile $CLI_PROFILE \
             --query "Exports[?ends_with(Name,'LBEndpoint')].Value"
     fi
 }
 
 check_stacks() {
-    aws cloudformation describe-stacks --stack-name $SETUP_STACK_NAME
-    aws cloudformation describe-stacks --stack-name $STACK_NAME
+    aws cloudformation describe-stacks --profile $CLI_PROFILE --stack-name $SETUP_STACK_NAME
+    aws cloudformation describe-stacks --profile $CLI_PROFILE --stack-name $STACK_NAME
 }
 
 delete_stack() {
     echo "deleting stack '$STACK_NAME'"
-    aws cloudformation delete-stack --stack-name $STACK_NAME
+    aws cloudformation delete-stack --profile $CLI_PROFILE --stack-name $STACK_NAME
 }
 
 delete_setup_stack() {
     echo "deleting stack '$SETUP_STACK_NAME'"
-    aws cloudformation delete-stack --stack-name $SETUP_STACK_NAME
+    aws cloudformation delete-stack --profile $CLI_PROFILE --stack-name $SETUP_STACK_NAME
 }
 
 # ----------------------------------------------------------------------
 # run stuff!
 
-create_setup_stack
-create_stack
+# create_setup_stack
+# create_stack
 # check_stacks
-# delete_stack
+delete_stack
 # delete_setup_stack
