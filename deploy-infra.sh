@@ -12,8 +12,8 @@ REGION=ap-southeast-2
 STACK_NAME=awsbootstrap
 SETUP_STACK_NAME=$STACK_NAME-setup
 
-AWS_ACCOUNT_ID=`aws sts get-caller-identity --profile awsbootstrap --query "Account" --output text`
-CLOUDFORMATION_BUCKET="$STACK_NAME-cfn-$AWS_ACCOUNT_ID"
+AWS_ACCOUNT_ID=`aws sts get-caller-identity --profile ${CLI_PROFILE} --query "Account" --output text`
+CLOUDFORMATION_BUCKET="$STACK_NAME-$REGION-cfn-$AWS_ACCOUNT_ID"
 CODEPIPELINE_BUCKET="$STACK_NAME-$REGION-codepipeline-$AWS_ACCOUNT_ID"
 
 create_setup_stack() {
