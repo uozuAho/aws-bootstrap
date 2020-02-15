@@ -2,9 +2,20 @@
 
 Working through https://gumroad.com/l/aws-good-parts
 
-# todo
+# The current infrastructure
 
-- try example codedeploy: https://docs.aws.amazon.com/codedeploy/latest/userguide/instances-ec2-create-cloudformation-template.html
+- CodePipeline
+  - Runs from github webhook
+  - Deploys node server onto EC2 instances
+- Staging environment
+  - VPC
+    - Multiple subnets in difference AZs
+    - ALB / ELB  todo: which is it???
+    - ASG
+      - N x EC2
+        - Runs CodeDeploy agent + node server
+
+# todo
 
 - move infra code to subdir
     - Figure out how to specify non-default buildspec location. AWS docs

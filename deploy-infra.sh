@@ -12,7 +12,8 @@ REGION=ap-southeast-2
 STACK_NAME=awsbootstrap
 SETUP_STACK_NAME=$STACK_NAME-setup
 
-AWS_ACCOUNT_ID=`aws sts get-caller-identity --profile awsbootstrap --query "Account" --output text`
+AWS_ACCOUNT_ID=`aws sts get-caller-identity --profile ${CLI_PROFILE} --query "Account" --output text`
+CLOUDFORMATION_BUCKET="$STACK_NAME-$REGION-cfn-$AWS_ACCOUNT_ID"
 CODEPIPELINE_BUCKET="$STACK_NAME-$REGION-codepipeline-$AWS_ACCOUNT_ID"
 
 create_setup_stack() {
@@ -26,17 +27,40 @@ create_setup_stack() {
         --no-fail-on-empty-changeset \
         --capabilities CAPABILITY_NAMED_IAM \
         --parameter-overrides \
-        CodePipelineBucket=$CODEPIPELINE_BUCKET
+            CodePipelineBucket=$CODEPIPELINE_BUCKET \
+            CloudFormationBucket=$CLOUDFORMATION_BUCKET
+}
+
+package_main() {
+    # put main template into the cloudformation s3 bucket
+    echo -e "\n\n=========== Packaging main.yml ==========="
+    
+    mkdir -p ./cfn_output
+    
+    PACKAGE_ERR="$(aws cloudformation package \
+        --region $REGION \
+        --profile $CLI_PROFILE \
+        --template main.yml \
+        --s3-bucket $CLOUDFORMATION_BUCKET \
+        --output-template-file ./cfn_output/main.yml 2>&1)"
+    
+    if ! [[ $PACKAGE_ERR =~ "Successfully packaged artifacts" ]]; then
+        echo "ERROR while running 'aws cloudformation package' command:"
+        echo $PACKAGE_ERR
+        exit 1
+    fi
 }
 
 create_stack() {
+    package_main
+
     echo -e "\n\n=========== Deploying main.yml ==========="
 
     aws cloudformation deploy \
         --region $REGION \
         --profile $CLI_PROFILE \
         --stack-name $STACK_NAME \
-        --template-file main.yml \
+        --template-file ./cfn_output/main.yml \
         --no-fail-on-empty-changeset \
         --capabilities CAPABILITY_NAMED_IAM \
         --parameter-overrides \
