@@ -27,12 +27,12 @@ create_setup_stack() {
         --no-fail-on-empty-changeset \
         --capabilities CAPABILITY_NAMED_IAM \
         --parameter-overrides \
-            CodePipelineBucket=$CODEPIPELINE_BUCKET
+            CodePipelineBucket=$CODEPIPELINE_BUCKET \
             CloudFormationBucket=$CLOUDFORMATION_BUCKET
 }
 
 package_main() {
-    # put main template into the setup s3 bucket
+    # put main template into the cloudformation s3 bucket
     echo -e "\n\n=========== Packaging main.yml ==========="
     
     mkdir -p ./cfn_output
@@ -41,7 +41,7 @@ package_main() {
         --region $REGION \
         --profile $CLI_PROFILE \
         --template main.yml \
-        --s3-bucket $CFN_BUCKET \
+        --s3-bucket $CLOUDFORMATION_BUCKET \
         --output-template-file ./cfn_output/main.yml 2>&1)"
     
     if ! [[ $PACKAGE_ERR =~ "Successfully packaged artifacts" ]]; then
@@ -52,6 +52,8 @@ package_main() {
 }
 
 create_stack() {
+    package_main
+
     echo -e "\n\n=========== Deploying main.yml ==========="
 
     aws cloudformation deploy \
@@ -95,8 +97,8 @@ delete_setup_stack() {
 # ----------------------------------------------------------------------
 # run stuff!
 
-# create_setup_stack
-# create_stack
+create_setup_stack
+create_stack
 # check_stacks
-delete_stack
+# delete_stack
 # delete_setup_stack
