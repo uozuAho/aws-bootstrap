@@ -4,6 +4,9 @@ Working through https://gumroad.com/l/aws-good-parts
 
 # The current infrastructure
 
+Under infra/ directory. To deploy, run infra/deploy_infra.sh. See the top
+of that file for required external config (eg. github + aws credentials).
+
 - CodePipeline
   - Runs from github webhook
   - Deploys node server onto EC2 instances
@@ -14,12 +17,6 @@ Working through https://gumroad.com/l/aws-good-parts
     - ASG
       - N x EC2
         - Runs CodeDeploy agent + node server
-
-# todo
-
-- move infra code to subdir
-    - Figure out how to specify non-default buildspec location. AWS docs
-      suck/are wrong?
 
 # book errors
 
@@ -45,3 +42,10 @@ Working through https://gumroad.com/l/aws-good-parts
 - Getting appspec wrong can mean you need to tear the entire stack down and
   rebuild. This takes ages, is there no faster way to do this? ECS/EKS is
   looking very attractive right now.
+
+- Nested stack parameters should be strings (?). When creating the nested stack
+  in this project, I initially had the EC2AMI paramter defined as
+  `AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>` in both templates. This
+  caused a 'unable to fetch parameter from parameter store' when creating the
+  staging resource. Changing the parameter type to `String` in the nested stack
+  solved the problem. See commit `1f54c5a`.

@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-CLI_PROFILE=awsbootstrap
+AWS_CLI_PROFILE=awsbootstrap
 EC2_INSTANCE_TYPE=t2.micro
 GITHUB_ACCESS_TOKEN=$(cat ~/.github/aws-bootstrap-token)
 GITHUB_OWNER=$(cat ~/.github/aws-bootstrap-owner)
@@ -12,16 +12,16 @@ REGION=ap-southeast-2
 STACK_NAME=awsbootstrap
 SETUP_STACK_NAME=$STACK_NAME-setup
 
-AWS_ACCOUNT_ID=`aws sts get-caller-identity --profile ${CLI_PROFILE} --query "Account" --output text`
+AWS_ACCOUNT_ID=`aws sts get-caller-identity --profile ${AWS_CLI_PROFILE} --query "Account" --output text`
 CLOUDFORMATION_BUCKET="$STACK_NAME-$REGION-cfn-$AWS_ACCOUNT_ID"
 CODEPIPELINE_BUCKET="$STACK_NAME-$REGION-codepipeline-$AWS_ACCOUNT_ID"
 
-create_setup_stack() {
-    echo -e "\n\n=========== Deploying setup.yml ==========="
+deploy_setup_stack() {
+    echo "deploying setup stack..."
 
     aws cloudformation deploy \
         --region $REGION \
-        --profile $CLI_PROFILE \
+        --profile $AWS_CLI_PROFILE \
         --stack-name $SETUP_STACK_NAME \
         --template-file setup.yml \
         --no-fail-on-empty-changeset \
@@ -31,19 +31,20 @@ create_setup_stack() {
             CloudFormationBucket=$CLOUDFORMATION_BUCKET
 }
 
-package_main() {
-    # put main template into the cloudformation s3 bucket
-    echo -e "\n\n=========== Packaging main.yml ==========="
-    
+package_stack() {
+    # package up stack templates, uploading nested stacks to s3 (as required
+    # by CloudFormation)
+    echo "packaging stack templates..."
+
     mkdir -p ./cfn_output
-    
+
     PACKAGE_ERR="$(aws cloudformation package \
         --region $REGION \
-        --profile $CLI_PROFILE \
+        --profile $AWS_CLI_PROFILE \
         --template main.yml \
         --s3-bucket $CLOUDFORMATION_BUCKET \
         --output-template-file ./cfn_output/main.yml 2>&1)"
-    
+
     if ! [[ $PACKAGE_ERR =~ "Successfully packaged artifacts" ]]; then
         echo "ERROR while running 'aws cloudformation package' command:"
         echo $PACKAGE_ERR
@@ -51,14 +52,15 @@ package_main() {
     fi
 }
 
-create_stack() {
-    package_main
+deploy_stack() {
+    deploy_setup_stack
+    package_stack
 
-    echo -e "\n\n=========== Deploying main.yml ==========="
+    echo "deploying stack..."
 
     aws cloudformation deploy \
         --region $REGION \
-        --profile $CLI_PROFILE \
+        --profile $AWS_CLI_PROFILE \
         --stack-name $STACK_NAME \
         --template-file ./cfn_output/main.yml \
         --no-fail-on-empty-changeset \
@@ -74,31 +76,30 @@ create_stack() {
     # If the deploy succeeded, show the DNS name of the created instance
     if [ $? -eq 0 ]; then
         aws cloudformation list-exports \
-            --profile $CLI_PROFILE \
+            --profile $AWS_CLI_PROFILE \
             --query "Exports[?ends_with(Name,'LBEndpoint')].Value"
     fi
 }
 
 check_stacks() {
-    aws cloudformation describe-stacks --profile $CLI_PROFILE --stack-name $SETUP_STACK_NAME
-    aws cloudformation describe-stacks --profile $CLI_PROFILE --stack-name $STACK_NAME
+    aws cloudformation describe-stacks --profile $AWS_CLI_PROFILE --stack-name $SETUP_STACK_NAME
+    aws cloudformation describe-stacks --profile $AWS_CLI_PROFILE --stack-name $STACK_NAME
 }
 
 delete_stack() {
     echo "deleting stack '$STACK_NAME'"
-    aws cloudformation delete-stack --profile $CLI_PROFILE --stack-name $STACK_NAME
+    aws cloudformation delete-stack --profile $AWS_CLI_PROFILE --stack-name $STACK_NAME
 }
 
 delete_setup_stack() {
     echo "deleting stack '$SETUP_STACK_NAME'"
-    aws cloudformation delete-stack --profile $CLI_PROFILE --stack-name $SETUP_STACK_NAME
+    aws cloudformation delete-stack --profile $AWS_CLI_PROFILE --stack-name $SETUP_STACK_NAME
 }
 
 # ----------------------------------------------------------------------
 # run stuff!
 
-# create_setup_stack
-# create_stack
+deploy_stack
 # check_stacks
-delete_stack
+# delete_stack
 # delete_setup_stack

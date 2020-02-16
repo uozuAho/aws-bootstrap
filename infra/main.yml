@@ -139,7 +139,7 @@ Resources:
   Staging:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: stage.yml
+      TemplateURL: env.yml
       TimeoutInMinutes: 30
       Parameters:
         EC2InstanceType: !Ref EC2InstanceType
