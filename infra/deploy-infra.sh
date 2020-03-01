@@ -16,6 +16,8 @@ DOMAIN=uozustuffo123.net
 AWS_ACCOUNT_ID=`aws sts get-caller-identity --profile ${AWS_CLI_PROFILE} --query "Account" --output text`
 CLOUDFORMATION_BUCKET="$STACK_NAME-$REGION-cfn-$AWS_ACCOUNT_ID"
 CODEPIPELINE_BUCKET="$STACK_NAME-$REGION-codepipeline-$AWS_ACCOUNT_ID"
+CERT=`aws acm list-certificates --region $REGION --profile $AWS_CLI_PROFILE \
+    --output text --query "CertificateSummaryList[?DomainName=='$DOMAIN'].CertificateArn | [0]"`
 
 deploy_setup_stack() {
     echo "deploying setup stack..."
@@ -69,6 +71,7 @@ deploy_stack() {
         --parameter-overrides \
         EC2InstanceType=$EC2_INSTANCE_TYPE \
         Domain=$DOMAIN \
+        Certificate=$CERT \
         GitHubOwner=$GITHUB_OWNER \
         GitHubRepo=$GITHUB_REPO \
         GitHubBranch=$GITHUB_BRANCH \

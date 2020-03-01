@@ -10,10 +10,12 @@ of that file for required external config (eg. github + aws credentials).
 - CodePipeline
   - Runs from github webhook
   - Deploys node server onto EC2 instances
-- Staging environment
+- 2x environments: staging and prod
   - VPC
     - Multiple subnets in difference AZs
+    - DNS with manually created domain (Route53)
     - ALB / ELB  todo: which is it???
+    - HTTPS with manually created cert (ACM)
     - ASG
       - N x EC2
         - Runs CodeDeploy agent + node server
@@ -49,3 +51,8 @@ of that file for required external config (eg. github + aws credentials).
   caused a 'unable to fetch parameter from parameter store' when creating the
   staging resource. Changing the parameter type to `String` in the nested stack
   solved the problem. See commit `1f54c5a`.
+
+# todo, not in book
+
+- automate certificate renewal
+- use ECS/EKS/Fargate
