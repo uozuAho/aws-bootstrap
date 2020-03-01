@@ -11,6 +11,7 @@ GITHUB_BRANCH=master
 REGION=ap-southeast-2
 STACK_NAME=awsbootstrap
 SETUP_STACK_NAME=$STACK_NAME-setup
+DOMAIN=uozustuffo123.net
 
 AWS_ACCOUNT_ID=`aws sts get-caller-identity --profile ${AWS_CLI_PROFILE} --query "Account" --output text`
 CLOUDFORMATION_BUCKET="$STACK_NAME-$REGION-cfn-$AWS_ACCOUNT_ID"
@@ -67,6 +68,7 @@ deploy_stack() {
         --capabilities CAPABILITY_NAMED_IAM \
         --parameter-overrides \
         EC2InstanceType=$EC2_INSTANCE_TYPE \
+        Domain=$DOMAIN \
         GitHubOwner=$GITHUB_OWNER \
         GitHubRepo=$GITHUB_REPO \
         GitHubBranch=$GITHUB_BRANCH \
